@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import db_helper
 from api_v1.posts import crud
-from api_v1.posts.schemas import Post, PostCreate
+from api_v1.posts.schemas import Post, PostCreate, PostUpdate
+from api_v1.posts import dependencies
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 
@@ -16,22 +17,26 @@ async def list_posts(
 
 
 @router.post("/", response_model=Post)
-async def list_posts(
+async def create_post(
     post: PostCreate,
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    return await crud.create_post(session=session, post=post)
+    return await crud.create_post(session=session, post_to_create=post)
 
 
 @router.get("/{post_id}", response_model=Post)
-async def list_posts(
-    post_id: int,
+async def get_post(
+    post: Post = Depends(dependencies.get_post_by_id),
+) -> Post:
+    return post
+
+
+@router.put("/{post_id}", response_model=Post)
+async def update_post(
+    post_update: PostUpdate,
+    post: Post = Depends(dependencies.get_post_by_id),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    if post := await crud.get_post(session=session, post_id=post_id):
-        return post
-
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Post not found",
+    return await crud.update_post(
+        session=session, post_db=post, post_update=post_update
     )
