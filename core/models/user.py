@@ -7,6 +7,7 @@ from core.models.base import Base
 
 if TYPE_CHECKING:
     from core.models.post import Post
+    from core.models.commentary import Commentary
 
 
 class User(Base):
@@ -17,3 +18,6 @@ class User(Base):
     )
 
     posts: Mapped[list["Post"]] = relationship(back_populates="user")
+    commentaries: Mapped[list["Commentary"]] = relationship(
+        back_populates="user",
+    )
