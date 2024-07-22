@@ -1,19 +1,6 @@
-from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict
 
-
-class CommentaryBase(BaseModel):
-    text: str
-    timestamp: datetime
-
-
-class Commentary(CommentaryBase):
-    model_config = ConfigDict(from_attributes=True)
-
-    user_id: int
-    text: str
-    timestamp: datetime
+from api_v1.commentaries.schemas import Commentary
 
 
 class PostBase(BaseModel):
