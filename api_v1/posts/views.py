@@ -12,7 +12,7 @@ from api_v1.posts.schemas import (
 )
 from api_v1.posts import dependencies
 
-router = APIRouter(prefix="/api/posts", tags=["posts"])
+router = APIRouter(prefix="/posts", tags=["posts"])
 
 
 @router.get("/", response_model=list[Post])

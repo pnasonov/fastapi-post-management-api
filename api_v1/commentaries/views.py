@@ -11,7 +11,7 @@ from api_v1.commentaries.schemas import (
 )
 from api_v1.commentaries import dependencies
 
-router = APIRouter(prefix="/api/commentaries", tags=["commentaries"])
+router = APIRouter(prefix="/commentaries", tags=["commentaries"])
 
 
 @router.post(
