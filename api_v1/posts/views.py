@@ -8,6 +8,7 @@ from api_v1.posts.schemas import (
     PostCreate,
     PostUpdate,
     PostUpdatePartial,
+    PostDetail,
 )
 from api_v1.posts import dependencies
 
@@ -29,11 +30,12 @@ async def create_post(
     return await crud.create_post(session=session, post_to_create=post)
 
 
-@router.get("/{post_id}", response_model=Post)
+@router.get("/{post_id}", response_model=PostDetail)
 async def get_post(
     post: Post = Depends(dependencies.get_post_by_id),
+    session: AsyncSession = Depends(db_helper.session_dependency),
 ) -> Post:
-    return post
+    return await crud.get_post_with_comments(session=session, post_db=post)
 
 
 @router.put("/{post_id}", response_model=Post)

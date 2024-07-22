@@ -1,4 +1,19 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
+
+
+class CommentaryBase(BaseModel):
+    text: str
+    timestamp: datetime
+
+
+class Commentary(CommentaryBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    user_id: int
+    text: str
+    timestamp: datetime
 
 
 class PostBase(BaseModel):
@@ -7,14 +22,14 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
+    user_id: int
+
+
+class PostUpdate(PostBase):
     pass
 
 
-class PostUpdate(PostCreate):
-    pass
-
-
-class PostUpdatePartial(PostCreate):
+class PostUpdatePartial(PostBase):
     title: str | None = None
     description: str | None = None
 
@@ -23,3 +38,8 @@ class Post(PostBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    user_id: int
+
+
+class PostDetail(Post):
+    commentaries: list[Commentary]

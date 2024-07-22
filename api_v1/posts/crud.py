@@ -1,9 +1,14 @@
 from sqlalchemy.engine import Result
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from core.models import Post
-from api_v1.posts.schemas import PostCreate, PostUpdate, PostUpdatePartial
+from api_v1.posts.schemas import (
+    PostCreate,
+    PostUpdate,
+    PostUpdatePartial,
+)
 
 
 async def get_posts(session: AsyncSession) -> list[Post]:
@@ -15,6 +20,17 @@ async def get_posts(session: AsyncSession) -> list[Post]:
 
 async def get_post(session: AsyncSession, post_id: int) -> Post | None:
     return await session.get(Post, post_id)
+
+
+async def get_post_with_comments(session: AsyncSession, post_db: Post) -> Post:
+    query = (
+        select(Post)
+        .where(Post.id == post_db.id)
+        .options(selectinload(Post.commentaries))
+    )
+    result: Result = await session.execute(query)
+    post = result.scalar()
+    return post
 
 
 async def create_post(
