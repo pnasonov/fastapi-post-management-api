@@ -31,7 +31,7 @@ async def create_post(
 
 
 @router.get("/{post_id}", response_model=PostDetail)
-async def get_post(
+async def get_post_with_commentaries(
     post: Post = Depends(dependencies.get_post_by_id),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ) -> Post:
