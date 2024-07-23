@@ -6,22 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import db_helper
 from api_v1.auth.schemas import User, CreateUser, Token
-from api_v1.auth import crud
-from api_v1.auth import utils
+from api_v1.auth import crud, utils
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
-
-# oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/auth/token")
-
-
-@router.get("/")
-async def user_info(
-    user: None,
-    session: AsyncSession = Depends(db_helper.session_dependency),
-):
-    if not user:
-        raise HTTPException(status_code=401, detail="Auth failed")
-    return {"message": "hi"}
 
 
 @router.post(
