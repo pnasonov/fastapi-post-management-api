@@ -34,9 +34,10 @@ async def get_post_with_comments(session: AsyncSession, post_db: Post) -> Post:
 
 
 async def create_post(
-    session: AsyncSession, post_to_create: PostCreate
+    session: AsyncSession, post_to_create: PostCreate, user_id: int
 ) -> Post:
     post_db = Post(**post_to_create.model_dump())
+    post_db.user_id = user_id
     session.add(post_db)
     await session.commit()
     await session.refresh(post_db)
