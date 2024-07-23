@@ -8,8 +8,10 @@ async def create_commentary(
     session: AsyncSession,
     comment_to_create: CommentaryCreate,
     post_id: int,
+    user_id: int,
 ) -> Commentary:
     comment_db = Commentary(post_id=post_id, **comment_to_create.model_dump())
+    comment_db.user_id = user_id
     session.add(comment_db)
     await session.commit()
     await session.refresh(comment_db)

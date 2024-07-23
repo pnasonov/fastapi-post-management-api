@@ -8,7 +8,7 @@ class CommentaryBase(BaseModel):
 
 
 class CommentaryCreate(CommentaryBase):
-    user_id: str
+    pass
 
 
 class Commentary(CommentaryBase):
