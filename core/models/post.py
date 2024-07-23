@@ -20,5 +20,5 @@ class Post(UserRelationMixin, Base):
         Text, nullable=True, default="", server_default=""
     )
     commentaries: Mapped[list["Commentary"]] = relationship(
-        back_populates="post",
+        back_populates="post", cascade="all, delete"
     )

@@ -18,7 +18,9 @@ class User(Base):
     )
     password: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    posts: Mapped[list["Post"]] = relationship(back_populates="user")
+    posts: Mapped[list["Post"]] = relationship(
+        back_populates="user", cascade="all, delete"
+    )
     commentaries: Mapped[list["Commentary"]] = relationship(
-        back_populates="user",
+        back_populates="user", cascade="all, delete"
     )
