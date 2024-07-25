@@ -11,6 +11,8 @@ from api_v1.commentaries.schemas import (
 )
 from api_v1.commentaries import dependencies
 from api_v1.auth.dependencies import get_current_user
+from api_v1.vertexai.utils import check_is_text_offensive
+
 
 router = APIRouter(prefix="/commentaries", tags=["commentaries"])
 
@@ -24,12 +26,21 @@ async def create_commentary(
     user_id: int = Depends(get_current_user),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    return await crud.create_commentary(
+    is_offensive: bool = await check_is_text_offensive(comment.text)
+    response = await crud.create_commentary(
         session=session,
         comment_to_create=comment,
         post_id=post_id,
         user_id=user_id,
+        is_offensive=is_offensive,
     )
+
+    if is_offensive:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Commentary is offensive",
+        )
+    return response
 
 
 @router.get("/{comment_id}", response_model=Commentary)
@@ -52,4 +63,7 @@ async def delete_commentary(
             commentary_db=commentary,
         )
 
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It is not your commentary")
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="It is not your commentary",
+    )
