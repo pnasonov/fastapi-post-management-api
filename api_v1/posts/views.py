@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +12,7 @@ from api_v1.posts.schemas import (
 )
 from api_v1.posts import dependencies
 from api_v1.auth.dependencies import get_current_user
+from api_v1.vertexai.utils import check_is_text_offensive
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -31,9 +30,21 @@ async def create_post(
     user_id: int = Depends(get_current_user),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    return await crud.create_post(
-        session=session, post_to_create=post, user_id=user_id
+    is_offensive: bool = await check_is_text_offensive(
+        post.title, post.description
     )
+    response = await crud.create_post(
+        session=session,
+        post_to_create=post,
+        user_id=user_id,
+        is_offensive=is_offensive,
+    )
+    if is_offensive:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Title or description is offensive",
+        )
+    return response
 
 
 @router.get("/{post_id}", response_model=PostDetail)
