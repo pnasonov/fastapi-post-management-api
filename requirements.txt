@@ -47,3 +47,4 @@ alembic==1.13.2
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.9
+vertexai==1.49.0
