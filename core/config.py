@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     db: DBSettings = DBSettings()
     jwt_secret_key: str = os.environ["JWT_SECRET_KEY"]
     jwt_algorithm: str = os.environ["JWT_ALGORITHM"]
+    vertex_project_id: str = os.environ["VERTEX_PROJECT_ID"]
+    vertex_location: str = os.environ["VERTEX_LOCATION"]
+    vertex_generative_model: str = os.environ["VERTEX_GENERATIVE_MODEL"]
 
 
 settings = Settings()
