@@ -10,8 +10,7 @@ vertexai.init(
     project=settings.vertex_project_id,
     location=settings.vertex_location,
 )
-
-model = vertexai.generative_models.GenerativeModel(settings.generative_model)
+model = GenerativeModel(settings.vertex_generative_model)
 
 
 async def check_is_text_offensive(*args: str) -> bool:
