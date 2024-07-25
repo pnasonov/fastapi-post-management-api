@@ -1,9 +1,9 @@
 from sqlalchemy.engine import Result
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import contains_eager
 
-from core.models import Post
+from core.models import Post, Commentary
 from api_v1.posts.schemas import (
     PostCreate,
     PostUpdate,
@@ -27,8 +27,8 @@ async def get_post(session: AsyncSession, post_id: int) -> Post | None:
 async def get_post_with_comments(session: AsyncSession, post_db: Post) -> Post:
     query = (
         select(Post)
-        .where(Post.id == post_db.id)
-        .options(selectinload(Post.commentaries))
+        .where(Post.id == post_db.id, Commentary.is_offensive == False)
+        .options(contains_eager(Post.commentaries))
     )
     result: Result = await session.execute(query)
     post = result.scalar()
