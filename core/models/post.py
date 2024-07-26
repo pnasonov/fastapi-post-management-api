@@ -1,7 +1,7 @@
 import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Text, String, Boolean, DateTime
+from sqlalchemy import Text, String, Boolean, DateTime, Integer
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from core.models.base import Base
@@ -33,4 +33,10 @@ class Post(UserRelationMixin, Base):
         default=False,
         server_default=None,
         nullable=True,
+    )
+    is_auto_response: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    response_threshold_in_seconds: Mapped[int | None] = mapped_column(
+        Integer, default=None, nullable=True
     )
