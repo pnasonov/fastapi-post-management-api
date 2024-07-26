@@ -1,8 +1,14 @@
-from sqlalchemy import select, Result
+import datetime
+
+from pydantic import TypeAdapter
+from sqlalchemy import select, Result, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import Commentary
-from api_v1.commentaries.schemas import CommentaryCreate
+from api_v1.commentaries.schemas import (
+    CommentaryCreate,
+    DailyStatistic,
+)
 
 
 async def create_commentary(
@@ -30,6 +36,30 @@ async def get_commentary(
     )
     result: Result = await session.execute(query)
     return result.scalar()
+
+
+async def get_daily_breakdown(
+    session: AsyncSession, date_from: datetime.date, date_to: datetime.date
+) -> list[DailyStatistic]:
+    query = (
+        select(
+            func.date(Commentary.timestamp).label("date"),
+            func.count(Commentary.id).label("comment_count"),
+            func.sum(
+                case(
+                    (Commentary.is_blocked, 1),
+                    else_=0,
+                )
+            ).label("blocked_count"),
+        )
+        .filter(Commentary.timestamp.between(date_from, date_to))
+        .group_by(func.date(Commentary.timestamp))
+    )
+    result: Result = await session.execute(query)
+    rows = result.mappings()
+    adapter = TypeAdapter(list[DailyStatistic])
+    all_days_stat = adapter.validate_python(rows)
+    return all_days_stat
 
 
 async def delete_commentary(

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from pydantic import BaseModel, ConfigDict
 
@@ -18,3 +18,9 @@ class Commentary(CommentaryBase):
     timestamp: datetime
     user_id: int
     post_id: int
+
+
+class DailyStatistic(BaseModel):
+    date: date
+    comment_count: int
+    blocked_count: int

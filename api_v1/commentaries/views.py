@@ -1,3 +1,4 @@
+import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status, Path, HTTPException
@@ -8,6 +9,7 @@ from api_v1.commentaries import crud
 from api_v1.commentaries.schemas import (
     Commentary,
     CommentaryCreate,
+    DailyStatistic,
 )
 from api_v1.commentaries import dependencies
 from api_v1.auth.dependencies import get_current_user
@@ -15,6 +17,17 @@ from api_v1.vertexai.utils import check_is_text_offensive
 
 
 router = APIRouter(prefix="/commentaries", tags=["commentaries"])
+
+
+@router.get("/comments-daily-breakdown", response_model=list[DailyStatistic])
+async def get_comments_daily_breakdown(
+    date_from: Annotated[datetime.date, Path],
+    date_to: Annotated[datetime.date, Path],
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    return await crud.get_daily_breakdown(
+        session=session, date_from=date_from, date_to=date_to
+    )
 
 
 @router.post(
