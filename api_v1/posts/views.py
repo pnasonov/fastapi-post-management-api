@@ -26,7 +26,7 @@ async def list_posts(
 
 @router.post("/", response_model=Post, status_code=status.HTTP_201_CREATED)
 async def create_post(
-    post: PostCreate,
+    post: PostCreate = Depends(dependencies.check_time_if_autoresponse),
     user_id: int = Depends(get_current_user),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
