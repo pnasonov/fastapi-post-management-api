@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+import datetime
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, status, HTTPException, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import db_helper
@@ -24,22 +27,30 @@ async def list_posts(
     return await crud.get_posts(session=session)
 
 
+@router.get("/comments-daily-breakdown")
+async def get_comments_daily_breakdown(
+    date_from: Annotated[datetime.date, Path],
+    date_to: Annotated[datetime.date, Path],
+):
+    pass
+
+
 @router.post("/", response_model=Post, status_code=status.HTTP_201_CREATED)
 async def create_post(
     post: PostCreate,
     user_id: int = Depends(get_current_user),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    is_offensive: bool = await check_is_text_offensive(
+    is_blocked: bool = await check_is_text_offensive(
         post.title, post.description
     )
     response = await crud.create_post(
         session=session,
         post_to_create=post,
         user_id=user_id,
-        is_offensive=is_offensive,
+        is_blocked=is_blocked,
     )
-    if is_offensive:
+    if is_blocked:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Title or description is offensive",

@@ -12,14 +12,14 @@ from api_v1.posts.schemas import (
 
 
 async def get_posts(session: AsyncSession) -> list[Post]:
-    query = select(Post).where(Post.is_offensive == False).order_by(Post.id)
+    query = select(Post).where(Post.is_blocked == False).order_by(Post.id)
     result: Result = await session.execute(query)
     posts = result.scalars().all()
     return list(posts)
 
 
 async def get_post(session: AsyncSession, post_id: int) -> Post | None:
-    query = select(Post).where(Post.id == post_id, Post.is_offensive == False)
+    query = select(Post).where(Post.id == post_id, Post.is_blocked == False)
     result: Result = await session.execute(query)
     return result.scalar()
 
@@ -27,7 +27,7 @@ async def get_post(session: AsyncSession, post_id: int) -> Post | None:
 async def get_post_with_comments(session: AsyncSession, post_db: Post) -> Post:
     query = (
         select(Post)
-        .where(Post.id == post_db.id, Commentary.is_offensive == False)
+        .where(Post.id == post_db.id, Commentary.is_blocked == False)
         .options(contains_eager(Post.commentaries))
     )
     result: Result = await session.execute(query)
@@ -39,11 +39,11 @@ async def create_post(
     session: AsyncSession,
     post_to_create: PostCreate,
     user_id: int,
-    is_offensive: bool,
+    is_blocked: bool,
 ) -> Post:
     post_db = Post(**post_to_create.model_dump())
     post_db.user_id = user_id
-    post_db.is_offensive = is_offensive
+    post_db.is_blocked = is_blocked
     session.add(post_db)
     await session.commit()
     await session.refresh(post_db)

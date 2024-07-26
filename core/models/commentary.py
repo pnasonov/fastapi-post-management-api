@@ -20,7 +20,7 @@ class Commentary(UserRelationMixin, Base):
     timestamp: Mapped[str] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    is_offensive: Mapped[bool] = mapped_column(
+    is_blocked: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
         server_default=None,

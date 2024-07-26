@@ -10,11 +10,11 @@ async def create_commentary(
     comment_to_create: CommentaryCreate,
     post_id: int,
     user_id: int,
-    is_offensive: bool,
+    is_blocked: bool,
 ) -> Commentary:
     comment_db = Commentary(post_id=post_id, **comment_to_create.model_dump())
     comment_db.user_id = user_id
-    comment_db.is_offensive = is_offensive
+    comment_db.is_blocked = is_blocked
     session.add(comment_db)
     await session.commit()
     await session.refresh(comment_db)
@@ -26,7 +26,7 @@ async def get_commentary(
 ) -> Commentary | None:
     query = select(Commentary).where(
         Commentary.id == commentary_id,
-        Commentary.is_offensive == False,
+        Commentary.is_blocked == False,
     )
     result: Result = await session.execute(query)
     return result.scalar()

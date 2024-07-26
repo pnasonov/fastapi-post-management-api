@@ -26,16 +26,16 @@ async def create_commentary(
     user_id: int = Depends(get_current_user),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
-    is_offensive: bool = await check_is_text_offensive(comment.text)
+    is_blocked: bool = await check_is_text_offensive(comment.text)
     response = await crud.create_commentary(
         session=session,
         comment_to_create=comment,
         post_id=post_id,
         user_id=user_id,
-        is_offensive=is_offensive,
+        is_blocked=is_blocked,
     )
 
-    if is_offensive:
+    if is_blocked:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Commentary is offensive",

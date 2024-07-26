@@ -28,7 +28,7 @@ class Post(UserRelationMixin, Base):
     commentaries: Mapped[list["Commentary"]] = relationship(
         back_populates="post", cascade="all, delete"
     )
-    is_offensive: Mapped[bool] = mapped_column(
+    is_blocked: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
         server_default=None,
