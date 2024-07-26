@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
 
 from api_v1.commentaries.schemas import Commentary
@@ -26,6 +28,7 @@ class Post(PostBase):
 
     id: int
     user_id: int
+    timestamp: datetime
 
 
 class PostDetail(Post):

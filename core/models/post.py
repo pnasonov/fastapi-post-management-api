@@ -1,6 +1,7 @@
+import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Text, String, Boolean, DateTime, func
+from sqlalchemy import Text, String, Boolean, DateTime
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from core.models.base import Base
@@ -21,7 +22,7 @@ class Post(UserRelationMixin, Base):
     )
     timestamp: Mapped[str] = mapped_column(
         DateTime(timezone=True),
-        server_default=func.now(),
+        default=datetime.datetime.now(),
         nullable=True,
     )
     commentaries: Mapped[list["Commentary"]] = relationship(
