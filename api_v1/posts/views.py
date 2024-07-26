@@ -1,7 +1,4 @@
-import datetime
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, status, HTTPException, Path
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import db_helper
@@ -25,14 +22,6 @@ async def list_posts(
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
     return await crud.get_posts(session=session)
-
-
-@router.get("/comments-daily-breakdown")
-async def get_comments_daily_breakdown(
-    date_from: Annotated[datetime.date, Path],
-    date_to: Annotated[datetime.date, Path],
-):
-    pass
 
 
 @router.post("/", response_model=Post, status_code=status.HTTP_201_CREATED)
