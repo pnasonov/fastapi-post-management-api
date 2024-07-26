@@ -21,7 +21,7 @@ async def get_post_by_id(
     )
 
 
-async def check_time_if_autoresponse(post: PostCreate):
+def check_time_if_autoresponse(post: PostCreate):
     if (
         not post.is_auto_response and not post.response_threshold_in_seconds
     ) or (post.is_auto_response and post.response_threshold_in_seconds):
