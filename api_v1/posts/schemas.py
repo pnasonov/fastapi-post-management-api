@@ -11,7 +11,8 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    pass
+    is_auto_response: bool = False
+    response_threshold_in_seconds: int | None = None
 
 
 class PostUpdate(PostBase):
@@ -29,6 +30,8 @@ class Post(PostBase):
     id: int
     user_id: int
     timestamp: datetime
+    is_auto_response: bool = False
+    response_threshold_in_seconds: int | None = None
 
 
 class PostDetail(Post):
