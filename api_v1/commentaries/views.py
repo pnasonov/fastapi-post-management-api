@@ -25,7 +25,7 @@ from api_v1.auth.dependencies import get_current_user
 from api_v1.vertexai.utils import check_is_text_offensive, run_auto_answer
 
 
-router = APIRouter(prefix="/posts", tags=["commentaries"])
+router = APIRouter(prefix="/commentaries", tags=["commentaries"])
 
 
 @router.get("/comments-daily-breakdown", response_model=list[DailyStatistic])
@@ -40,9 +40,7 @@ async def get_comments_daily_breakdown(
 
 
 @router.post(
-    "/{post_id}",
-    response_model=Commentary,
-    status_code=status.HTTP_201_CREATED,
+    "/", response_model=Commentary, status_code=status.HTTP_201_CREATED
 )
 async def create_commentary(
     comment: CommentaryCreate,
@@ -69,16 +67,14 @@ async def create_commentary(
     return response
 
 
-@router.get("/{post_id}/{comment_id}", response_model=Commentary)
+@router.get("/{comment_id}", response_model=Commentary)
 async def get_commentary(
     commentary: Commentary = Depends(dependencies.get_comment_by_id),
 ):
     return commentary
 
 
-@router.delete(
-    "/{post_id}/{comment_id}", status_code=status.HTTP_204_NO_CONTENT
-)
+@router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_commentary(
     commentary: Commentary = Depends(dependencies.get_comment_by_id),
     user_id: int = Depends(get_current_user),
