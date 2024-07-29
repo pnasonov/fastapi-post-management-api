@@ -1,9 +1,17 @@
 import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status, Path, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    status,
+    Path,
+    HTTPException,
+    BackgroundTasks,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api_v1.posts.schemas import Post
 from core.models import db_helper
 from api_v1.commentaries import crud
 from api_v1.commentaries.schemas import (
@@ -12,8 +20,9 @@ from api_v1.commentaries.schemas import (
     DailyStatistic,
 )
 from api_v1.commentaries import dependencies
+from api_v1.posts.dependencies import get_post_by_id
 from api_v1.auth.dependencies import get_current_user
-from api_v1.vertexai.utils import check_is_text_offensive
+from api_v1.vertexai.utils import check_is_text_offensive, run_auto_answer
 
 
 router = APIRouter(prefix="/commentaries", tags=["commentaries"])
@@ -35,15 +44,16 @@ async def get_comments_daily_breakdown(
 )
 async def create_commentary(
     comment: CommentaryCreate,
-    post_id: Annotated[int, Path],
+    background_tasks: BackgroundTasks,
     user_id: int = Depends(get_current_user),
+    post: Post = Depends(get_post_by_id),
     session: AsyncSession = Depends(db_helper.session_dependency),
 ):
     is_blocked: bool = await check_is_text_offensive(comment.text)
     response = await crud.create_commentary(
         session=session,
         comment_to_create=comment,
-        post_id=post_id,
+        post_id=post.id,
         user_id=user_id,
         is_blocked=is_blocked,
     )
@@ -53,6 +63,7 @@ async def create_commentary(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Commentary is offensive",
         )
+    background_tasks.add_task(run_auto_answer, session, post, comment.text)
     return response
 
 
