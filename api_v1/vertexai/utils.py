@@ -1,9 +1,8 @@
 import datetime
 
-import vertexai
+from google import genai
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from vertexai.generative_models import GenerativeModel
 
 from api_v1.posts.schemas import Post
 from api_v1.commentaries.crud import create_commentary
@@ -13,17 +12,20 @@ from api_v1.vertexai.question_bases import CHECK_IS_OFFENSIVE_TRUE_FALSE
 from core.config import settings, scheduler
 
 
-vertexai.init(
-    project=settings.vertex_project_id,
-    location=settings.vertex_location,
-)
-model = GenerativeModel(settings.vertex_generative_model)
+ai_client = genai.Client(api_key=settings.gemini_api_key)
 
 
 async def check_is_text_offensive(*args: str) -> bool:
     question = CHECK_IS_OFFENSIVE_TRUE_FALSE + " ".join(args)
     try:
-        response = await model.generate_content_async(question)
+        response = await ai_client.aio.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=question,
+        )
+        # response_lite = await ai_client.aio.models.generate_content(
+        #     model="gemini-2.0-flash-lite",
+        #     contents=question,
+        # )
         value = response.text.split()[0]
         if value in ("True", "False"):
             return value == "True"
@@ -43,7 +45,10 @@ async def generate_response_for_post_and_comment(
     question = (
         f"Answer relevant for post: ({post}) and commentary: ({commentary})"
     )
-    response = await model.generate_content_async(question)
+    response = ai_client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=question,
+    )
     return response.text
 
 
