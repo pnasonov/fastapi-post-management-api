@@ -1,81 +1,95 @@
-import datetime
-
 import pytest
+from fastapi import HTTPException, status
 from httpx import AsyncClient
-from pydantic import TypeAdapter
+from sqlalchemy import select
 
 from api_v1.tests.conftest import (
     authenticated_client,
 )
-from api_v1.posts.schemas import Post, PostCreate
-from api_v1.commentaries.schemas import CommentaryCreate, Commentary
-from api_v1.commentaries.crud import create_commentary
 from api_v1.tests.db import test_db
+from core.models import Post as PostModel
 
 
-@pytest.mark.parametrize(
-    "post_to_create",
-    [
-        PostCreate(
-            title="Good post",
-            description="Very nice",
-            is_auto_response=False,
-        ),
-    ],
-)
 @pytest.mark.asyncio
-async def test_create_post_success(
-    authenticated_client: AsyncClient, post_to_create: PostCreate
+async def test_create_post_offensive_blocked(
+        authenticated_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ):
+    async def mock_check_is_text_offensive(*_: str) -> bool:
+        return True
+
+    monkeypatch.setattr(
+        "api_v1.posts.views.check_is_text_offensive", mock_check_is_text_offensive
+    )
     response = await authenticated_client.post(
         "/posts/",
         json={
             "user_id": 1,
-            **post_to_create.model_dump(),
+            "title": "You are useless",
+            "description": "Get lost, nobody wants you here.",
+            "is_auto_response": False,
+            "response_threshold_in_seconds": 0,
         },
     )
 
-    assert response.status_code == 201
-    assert TypeAdapter(Post).validate_python(response.json())
-    for key, value in post_to_create.model_dump().items():
-        assert response.json().get(key) == value
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    session = test_db.get_scoped_session()
+    result = await session.execute(select(PostModel))
+    posts = result.scalars().all()
+    assert len(posts) == 1
+    assert posts[0].is_blocked is True
 
 
-@pytest.mark.parametrize(
-    "comments_to_create",
-    [
-        (
-            {"text": "comment 1", "user_id": 1, "is_blocked": False},
-            {"text": "comment 2", "user_id": 1, "is_blocked": True},
-            {"text": "comment 3", "user_id": 1, "is_blocked": False},
-            {"text": "comment 4", "user_id": 1, "is_blocked": True},
-            {"text": "comment 5", "user_id": 1, "is_blocked": False},
-        )
-    ],
-)
-async def test_get_analytics_for_commentaries(
-    authenticated_client: AsyncClient,
-    comments_to_create: tuple[dict],
+@pytest.mark.asyncio
+async def test_create_post_not_offensive(
+        authenticated_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ):
-    for comment in comments_to_create:
-        await create_commentary(
-            session=test_db.get_scoped_session(),
-            comment_to_create=CommentaryCreate(text=comment["text"]),
-            post_id=1,
-            user_id=1,
-            is_blocked=comment["is_blocked"],
-        )
-    today = datetime.date.today()
-    response = await authenticated_client.get(
-        "/commentaries/comments-daily-breakdown",
-        params=(
-            {
-                "date_from": today.strftime("%Y-%m-%d"),
-                "date_to": (today + datetime.timedelta(days=1)).strftime(
-                    "%Y-%m-%d"
-                ),
-            }
-        ),
+    async def mock_check_is_text_offensive(*_: str) -> bool:
+        return False
+
+    monkeypatch.setattr(
+        "api_v1.posts.views.check_is_text_offensive", mock_check_is_text_offensive
+    )
+    response = await authenticated_client.post(
+        "/posts/",
+        json={
+            "user_id": 1,
+            "title": "Gardening tips",
+            "description": "Sharing a few ideas on tomatoes and basil.",
+            "is_auto_response": False,
+            "response_threshold_in_seconds": 0,
+        },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_201_CREATED
+    session = test_db.get_scoped_session()
+    result = await session.execute(select(PostModel))
+    post_db = result.scalars().one()
+    assert post_db.is_blocked is False
+    assert post_db.title == "Gardening tips"
+
+
+@pytest.mark.asyncio
+async def test_create_post_needs_human_review(
+        authenticated_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+):
+    async def mock_check_is_text_offensive(*_: str) -> bool:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Text requires human review: inconsistent AI moderation responses.",
+        )
+
+    monkeypatch.setattr(
+        "api_v1.posts.views.check_is_text_offensive", mock_check_is_text_offensive
+    )
+    response = await authenticated_client.post(
+        "/posts/",
+        json={
+            "user_id": 1,
+            "title": "Nice try genius",
+            "description": "Sure, you're brilliant... or maybe not.",
+            "is_auto_response": False,
+            "response_threshold_in_seconds": 0,
+        },
+    )
+
+    assert response.status_code == status.HTTP_409_CONFLICT

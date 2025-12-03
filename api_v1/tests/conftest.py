@@ -1,5 +1,5 @@
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 from main import app
 from api_v1.tests.db import test_db
@@ -25,7 +25,8 @@ async def test_client(setup_database):
         test_db.session_dependency
     )
     async with AsyncClient(
-        app=app, base_url="http://127.0.0.1:8000/api/v1"
+        transport=ASGITransport(app=app),
+        base_url="http://127.0.0.1/api/v1",
     ) as test_client:
         yield test_client
 
