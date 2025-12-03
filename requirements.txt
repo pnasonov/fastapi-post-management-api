@@ -49,5 +49,5 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.9
 apscheduler==3.10.4
 pytest-mock==3.14.0
-google-genai==1.41.0
+google-genai==1.47.0
 openai==2.2.0
