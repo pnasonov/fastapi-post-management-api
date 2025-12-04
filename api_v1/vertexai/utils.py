@@ -33,12 +33,10 @@ async def check_is_text_offensive(*args: str) -> bool:
         )
 
     try:
-        # first, second = await asyncio.gather(
-        #     ask_model("gemini-2.5-flash-lite"),
-        #     ask_model("gemini-2.0-flash"),
-        # )
-        first = await ask_model("gemini-2.0-flash")
-        second = await ask_model("gemini-2.5-flash-lite")
+        first, second = await asyncio.gather(
+            ask_model("gemini-2.5-flash-lite"),
+            ask_model("gemini-2.0-flash"),
+        )
         if first == second:
             return first
 
